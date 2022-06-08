@@ -87,3 +87,24 @@ def movies_by_genre(genre):
     if not result_list:
         return "Такого жанра не найдено"
     return result_list
+
+
+def partners_more_than_two_films(actor1, actor2):
+    db_connect = DBconnect('netflix.db')
+    query = f"""
+                    SELECT `cast`
+                    FROM netflix
+                    WHERE `cast` LIKE '%{actor1}%' AND `cast` LIKE '%{actor2}%'
+                    """
+    db_connect.cursor.execute(query)
+    result = db_connect.cursor.fetchall()
+    actors_list = []
+    for movie in result:
+        actors = movie[0].split(', ')
+        for actor in actors:
+            actors_list.append(actor)
+    result_list = []
+    for actor in actors_list:
+        if actor != actor1 and actor != actor2 and actors_list.count(actor) > 2:
+            result_list.append(actor)
+    return set(result_list)
