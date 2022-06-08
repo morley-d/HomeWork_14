@@ -11,16 +11,17 @@ class DBconnect:
         self.connect.close()
 
 
-def get_by_title(title):
+def movie_by_title(title):
     db_connect = DBconnect('netflix.db')
-    db_connect.cursor.execute(f"""
-                              SELECT title, country, release_year, listed_in, description
-                              FROM netflix
-                              WHERE title
-                              LIKE '%{title}%'
-                              ORDER BY release_year DESC
-                              LIMIT 1
-                              """)
+    query = f"""
+            SELECT title, country, release_year, listed_in, description
+            FROM netflix
+            WHERE title
+            LIKE '%{title}%'
+            ORDER BY release_year DESC
+            LIMIT 1
+            """
+    db_connect.cursor.execute(query)
     result = db_connect.cursor.fetchone()
     return {
         "title": result[0],
@@ -30,4 +31,59 @@ def get_by_title(title):
         "description": result[4].replace('\n', '')
     }
 
-# print(get_by_title("100"))
+
+def movies_by_years(year1, year2):
+    db_connect = DBconnect('netflix.db')
+    query = f"""
+                SELECT title, release_year
+                FROM netflix
+                WHERE release_year BETWEEN {year1} AND {year2}
+                LIMIT 100
+                """
+    db_connect.cursor.execute(query)
+    result = db_connect.cursor.fetchall()
+    result_list = []
+    for movie in result:
+        result_list.append({"title": movie[0], "release_year": movie[1]})
+    return result_list
+
+
+def movies_by_rating(category):
+    db_connect = DBconnect('netflix.db')
+    rating_param = {
+        "children": "'G'",
+        "family": "'G', 'PG', 'PG-13'",
+        "adult": "'R','NC-17'"
+    }
+    if category not in rating_param:
+        return "Переданной группы не существует"
+    query = f"""
+                    SELECT title, rating, description
+                    FROM netflix
+                    WHERE rating IN ({rating_param[category]})
+                    """
+    db_connect.cursor.execute(query)
+    result = db_connect.cursor.fetchall()
+    result_list = []
+    for movie in result:
+        result_list.append({"title": movie[0], "rating": movie[1], "description": movie[2].replace('\n', '')})
+    return result_list
+
+
+def movies_by_genre(genre):
+    db_connect = DBconnect('netflix.db')
+    query = f"""
+                SELECT title, description
+                FROM netflix
+                WHERE listed_in LIKE '%{genre}%'
+                ORDER BY release_year DESC
+                LIMIT 10
+                """
+    db_connect.cursor.execute(query)
+    result = db_connect.cursor.fetchall()
+    result_list = []
+    for movie in result:
+        result_list.append({"title": movie[0], "description": movie[1].replace('\n', '')})
+    if not result_list:
+        return "Такого жанра не найдено"
+    return result_list
