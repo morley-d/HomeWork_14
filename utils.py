@@ -1,8 +1,6 @@
 import sqlite3
 
 """Класс для подключения к БД (для разнообразия)"""
-
-
 class DBconnect:
     def __init__(self, path):
         self.connect = sqlite3.connect(path)
@@ -14,8 +12,6 @@ class DBconnect:
 
 
 """Фунункция создания подключения и возврата результата по переданному запросу"""
-
-
 def executing_db_query(query):
     with sqlite3.connect("netflix.db") as connection:
         cursor = connection.cursor()
@@ -59,11 +55,11 @@ def movie_by_title(title):
     if not result:
         return "Фильм с такиим названием не найден"
     return {
-        "title": result[0],
-        "country": result[1],
-        "release_year": result[2],
-        "listed_in": result[3],
-        "description": result[4].replace('\n', '')
+        "title": result[0][0],
+        "country": result[0][1],
+        "release_year": result[0][2],
+        "listed_in": result[0][3],
+        "description": result[0][4].replace('\n', '')
     }
 
 
@@ -121,9 +117,9 @@ def movies_by_genre(genre):
 # для 2 актеров возвращает список тех, кто играет с ними в паре больше 2 раз
 def partners_more_than_two_films(actor1, actor2):
     query = f"""
-            SELECT `cast`
+            SELECT netflix.cast
             FROM netflix
-            WHERE `cast` LIKE '%{actor1}%' AND `cast` LIKE '%{actor2}%'
+            WHERE netflix.cast LIKE '%{actor1}%' AND netflix.cast LIKE '%{actor2}%'
             """
     result = executing_db_query(query)
     actors_list = []
